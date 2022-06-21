@@ -100,7 +100,8 @@ private:
 
   ros::Timer mainloop_timer_;
 
-  tf2::Quaternion rfu_to_flu_; //!< transforms body rotation from right-front-up to forward-left-up
+  tf2::Quaternion nue_to_enu_;
+  tf2::Quaternion nue_to_ned_;
 
   void position_callback(const vrpn_TRACKERCB& info);
   void send_transform(const geometry_msgs::PoseStamped& pose, const std::string& child_frame);

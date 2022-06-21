@@ -55,7 +55,7 @@ TrackerHandler::TrackerHandler(const std::string& name,
   time_manager_(time_manager),
   tracker_((name + "@" + options.host).c_str(), connection_.get())
 {
-  rfu_to_flu_.setRPY(0.0, 0.0, M_PI_2); // rotate pi/2 (90deg) about z-axis
+  nue_to_enu_.setRPY(0.0, -M_PI_2, -M_PI_2);
 
   std::string topic_name = sanitize_name(name_);
 
@@ -88,11 +88,11 @@ void TrackerHandler::position_callback(const vrpn_TRACKERCB& info)
   enu_msg.pose.position.z =  info.pos[VRPNIndex::Y];
 
   // first get rotation to right-front-up body frame, then rotate to forward-left-up
-  tf2::Quaternion enu_to_rfu(info.quat[VRPNIndex::Z], // x
-                             info.quat[VRPNIndex::X], // y
-                             info.quat[VRPNIndex::Y], // z
+  tf2::Quaternion nue_to_body(info.quat[VRPNIndex::X], // x
+                             info.quat[VRPNIndex::Y], // y
+                             info.quat[VRPNIndex::Z], // z
                              info.quat[VRPNIndex::W]); // w
-  tf2::Quaternion quat = enu_to_rfu * rfu_to_flu_;
+  tf2::Quaternion quat = nue_to_enu_.inverse() * nue_to_body;
 
   enu_msg.pose.orientation.x =  quat.x();
   enu_msg.pose.orientation.y =  quat.y();
