@@ -56,7 +56,7 @@ TrackerHandler::TrackerHandler(const std::string& name,
   tracker_((name + "@" + options.host).c_str(), connection_.get())
 {
   nue_to_enu_.setRPY(0.0, -M_PI_2, -M_PI_2);
-  nue_to_ned_.setRPY(-M_PI_2, 0.0, 0.0);
+  nue_to_ned_.setRPY(M_PI_2, 0.0, 0.0);
 
   std::string topic_name = sanitize_name(name_);
 
