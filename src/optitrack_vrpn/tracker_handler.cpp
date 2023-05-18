@@ -56,6 +56,7 @@ TrackerHandler::TrackerHandler(const std::string& name,
   tracker_((name + "@" + options.host).c_str(), connection_.get())
 {
   nue_to_enu_.setRPY(0.0, -M_PI_2, -M_PI_2);
+  nue_to_ned_.setRPY(-M_PI_2, 0.0, 0.0);
 
   std::string topic_name = sanitize_name(name_);
 
@@ -92,12 +93,12 @@ void TrackerHandler::position_callback(const vrpn_TRACKERCB& info)
                              info.quat[VRPNIndex::Y], // y
                              info.quat[VRPNIndex::Z], // z
                              info.quat[VRPNIndex::W]); // w
-  tf2::Quaternion quat = nue_to_enu_.inverse() * nue_to_body;
+  tf2::Quaternion quat_enu = nue_to_enu_.inverse() * nue_to_body;
 
-  enu_msg.pose.orientation.x =  quat.x();
-  enu_msg.pose.orientation.y =  quat.y();
-  enu_msg.pose.orientation.z =  quat.z();
-  enu_msg.pose.orientation.w =  quat.w();
+  enu_msg.pose.orientation.x =  quat_enu.x();
+  enu_msg.pose.orientation.y =  quat_enu.y();
+  enu_msg.pose.orientation.z =  quat_enu.z();
+  enu_msg.pose.orientation.w =  quat_enu.w();
   enu_pub_.publish(enu_msg);
   send_transform(enu_msg, tf_child_frame_);
 
@@ -111,10 +112,12 @@ void TrackerHandler::position_callback(const vrpn_TRACKERCB& info)
   ned_msg.pose.position.x =  info.pos[VRPNIndex::X];
   ned_msg.pose.position.y =  info.pos[VRPNIndex::Z];
   ned_msg.pose.position.z = -info.pos[VRPNIndex::Y];
-  ned_msg.pose.orientation.x =  info.quat[VRPNIndex::X];
-  ned_msg.pose.orientation.y =  info.quat[VRPNIndex::Z];
-  ned_msg.pose.orientation.z = -info.quat[VRPNIndex::Y];
-  ned_msg.pose.orientation.w =  info.quat[VRPNIndex::W];
+  tf2::Quaternion quat_ned = nue_to_ned_.inverse() * nue_to_body;
+
+  ned_msg.pose.orientation.x = quat_ned.x();
+  ned_msg.pose.orientation.y = quat_ned.y();
+  ned_msg.pose.orientation.z = quat_ned.z();
+  ned_msg.pose.orientation.w = quat_ned.w();
   ned_pub_.publish(ned_msg);
   send_transform(ned_msg, tf_child_frame_ned_);
 }
